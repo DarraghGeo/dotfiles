@@ -50,8 +50,6 @@ highlight SpecialKey ctermfg=DarkGray ctermbg=Black
 " ----------------------------------------------------------------------------
 
 set ruler                  " show the cursor position all the time
-set cursorline             " underline current line
-set cursorcolumn           " highlight current column
 set noshowcmd              " don't display incomplete commands
 set nolazyredraw           " turn off lazy redraw
 set relativenumber         " line numbers
@@ -87,7 +85,20 @@ set laststatus=2           " always show the status line
 set ignorecase             " ignore case when searching
 set nohlsearch             " don't highlight searches
 set visualbell             " shut the fuck up
+set cursorline             " underline current line
+set cursorcolumn           " highlight current column
 
+function! CursorToggle()
+    if(&cursorline == 1)
+        set nocursorline
+        set nocursorcolumn
+    else
+        set cursorline
+        set cursorcolumn
+    endif
+endfunction
+
+nnoremap <expr> ; CursorToggle()
 " ----------------------------------------------------------------------------
 " Text Formatting
 " ----------------------------------------------------------------------------
