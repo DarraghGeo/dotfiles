@@ -37,6 +37,7 @@ colorscheme torte
 highlight Comment         ctermfg=DarkGrey guifg=#444444
 highlight StatusLineNC    ctermfg=Black ctermbg=DarkGrey cterm=bold
 highlight StatusLine      ctermbg=Black ctermfg=LightGrey
+highlight LongLine        cterm=underline,bold
 
 " ----------------------------------------------------------------------------
 "   Highlight Trailing Whitespace
@@ -87,6 +88,7 @@ set nohlsearch                          " don't highlight searches
 set visualbell                          " shut the fuck up
 set cursorline                          " underline current line
 set cursorcolumn                        " highlight current column
+match LongLine /\%81v.\+/                  " let us know when we pass 80 chars
 
 function! CursorToggle()
     if(&cursorline == 1)
@@ -113,8 +115,6 @@ set expandtab                           " expand tabs to spaces
 set nosmarttab                          " fuck tabs
 set formatoptions+=n                    " support for numbered/bullet lists
 set virtualedit=block                   " allow virtual edit in visual block
-"set textwidth=80                       " wrap at 80 chars by default
-set cc=80                               " Let me know if I push passed 80 characters.
 
 " ----------------------------------------------------------------------------
 " Key Mapping
