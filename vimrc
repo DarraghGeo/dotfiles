@@ -4,6 +4,8 @@
 "
 " - @rtomayko (tomayko.com)
 " - @jkreeftmeijer (jeffkreeftmeijer.com)
+" - Nathan LeClaire (nathanleclaire.com)
+"   The Vim Wikia (vim.wikia.com)
 " - [More Victims Coming Soon]
 "
 filetype plugin on
@@ -119,6 +121,7 @@ set virtualedit=block                   " allow virtual edit in visual block
 " ----------------------------------------------------------------------------
 " Key Mapping
 " ----------------------------------------------------------------------------
+let mapleader = ","
 inoremap <S-Tab> <Tab>
 inoremap <Tab> <C-X><C-I>
 inoremap <expr> h ((pumvisible())?("\<C-E>"):("h"))
@@ -131,3 +134,28 @@ nnoremap <Tab> gt
 nnoremap <C-J> <C-W><C-J>
 nnoremap <C-K> <C-W><C-K>
 nnoremap <C-L> <C-W><C-L>
+
+nnoremap Q :q<CR>
+nnoremap W :w<CR>
+
+" ----------------------------------------------------------------------------
+" PHPUnit testing
+" http://nathanleclaire.com/blog/2014/01/20/speed-up-your-workflow-by-running-phpunit-tests-inside-of-vim/
+" ----------------------------------------------------------------------------
+function! RunPHPUnitTest(filter)
+    cd %:p:h
+    if a:filter
+        normal! T yw
+        let result = system("phpunit --filter " . @" . " " . bufname("%"))
+    else
+        let result = system("phpunit " . bufname("%"))
+    endif
+    split __PHPUnit_Result__
+    normal! ggdG
+    setlocal buftype=nofile
+    call append(0, split(result, '\v\n'))
+    cd -
+endfunction
+
+nnoremap <leader>u :call RunPHPUnitTest(0)<cr>
+nnoremap <leader>f :call RunPHPUnitTest(1)<cr>
