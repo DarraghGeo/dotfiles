@@ -130,7 +130,9 @@ inoremap <expr> k ((pumvisible())?("\<C-P>"):("k"))
 inoremap <expr> l ((pumvisible())?("\<C-Y>"):("l"))
 
 nnoremap <Tab> gt
+nnoremap <S-Tab> gT
 
+nnoremap <C-H> <C-W><C-H>
 nnoremap <C-J> <C-W><C-J>
 nnoremap <C-K> <C-W><C-K>
 nnoremap <C-L> <C-W><C-L>
@@ -138,9 +140,13 @@ nnoremap <C-L> <C-W><C-L>
 nnoremap Q :q<CR>
 nnoremap W :w<CR>
 
+" ---------------------------------------------------------------------------
+" Plugins
+" ---------------------------------------------------------------------------
+execute pathogen#infect()
+
 " ----------------------------------------------------------------------------
 " PHPUnit testing
-" http://nathanleclaire.com/blog/2014/01/20/speed-up-your-workflow-by-running-phpunit-tests-inside-of-vim/
 " ----------------------------------------------------------------------------
 function! RunPHPUnitTest(filter)
     cd %:p:h
@@ -157,5 +163,5 @@ function! RunPHPUnitTest(filter)
     cd -
 endfunction
 
-nnoremap <leader>u :call RunPHPUnitTest(0)<cr>
-nnoremap <leader>f :call RunPHPUnitTest(1)<cr>
+nnoremap T :call RunPHPUnitTest(0)<cr>
+nnoremap <leader>T :call RunPHPUnitTest(1)<cr>
