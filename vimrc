@@ -26,6 +26,7 @@ set autoread                            " reload files (no local changes only)
 set tabpagemax=50                       " open 50 tabs max
 set autochdir                           " change working directory
 set omnifunc=syntaxcomplete#Complete
+set scrolloff=20                        " Always have empty spaces at EOF
 
 " ---------------------------------------------------------------------------
 " Colors / Theme
