@@ -26,7 +26,6 @@ set autoread                            " reload files (no local changes only)
 set tabpagemax=50                       " open 50 tabs max
 set autochdir                           " change working directory
 set omnifunc=syntaxcomplete#Complete
-set scrolloff=20                        " Always have empty spaces at EOF
 
 " ---------------------------------------------------------------------------
 " Colors / Theme
@@ -133,6 +132,10 @@ inoremap <expr> l ((pumvisible())?("\<C-Y>"):("l"))
 
 nnoremap <Tab> gt
 nnoremap <S-Tab> gT
+nnoremap j jzz
+nnoremap k kzz
+nnoremap jj <C-d>zz
+nnoremap kk <C-u>zz
 
 nnoremap <C-H> <C-W><C-H>
 nnoremap <C-J> <C-W><C-J>
@@ -147,6 +150,7 @@ inoremap {<CR> {<CR>}<Esc>O
 inoremap ( ()<Esc>ba
 inoremap <Space><Space> <Esc>la
 inoremap <Leader><Leader> <Esc>:w!<CR>a
+
 
 
 " ---------------------------------------------------------------------------
