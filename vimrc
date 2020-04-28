@@ -15,6 +15,7 @@ filetype plugin on
 " ---------------------------------------------------------------------------
 
 set nocompatible                        " essential
+set noswapfile                          " no .swp files
 set history=1000                        " lots of command line history
 set cf                                  " error files / jumping
 set ffs=unix,dos,mac                    " support these files
@@ -139,11 +140,18 @@ nnoremap <C-L> <C-W><C-L>
 
 nnoremap Q :q<CR>
 nnoremap W :w<CR>
+nnoremap <Space> :w!<CR>
+
+inoremap {<CR> {<CR>}<Esc>O
+inoremap ( ()<Esc>ba
+inoremap <Space><Space> <Esc>la
+inoremap <Leader><Leader> <Esc>:w!<CR>a
+
 
 " ---------------------------------------------------------------------------
 " Plugins
 " ---------------------------------------------------------------------------
-execute pathogen#infect()
+" execute pathogen#infect()
 
 " ----------------------------------------------------------------------------
 " PHPUnit testing
