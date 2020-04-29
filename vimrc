@@ -132,10 +132,14 @@ inoremap <expr> l ((pumvisible())?("\<C-Y>"):("l"))
 
 nnoremap <Tab> gt
 nnoremap <S-Tab> gT
+
 nnoremap j jzz
 nnoremap k kzz
-nnoremap jj <C-d>zz
-nnoremap kk <C-u>zz
+
+nnoremap <Space>j <C-d>zz
+nnoremap <Space>k <C-u>zz
+nnoremap <Space>h ^
+nnoremap <Space>l $
 
 nnoremap <C-H> <C-W><C-H>
 nnoremap <C-J> <C-W><C-J>
@@ -144,13 +148,9 @@ nnoremap <C-L> <C-W><C-L>
 
 nnoremap Q :q<CR>
 nnoremap W :w<CR>
-nnoremap <Space> :w!<CR>
+nnoremap <Space><Space> :w!<CR>
 
-inoremap {<CR> {<CR>}<Esc>O
-inoremap ( ()<Esc>ba
-inoremap <Space><Space> <Esc>la
-inoremap <Leader><Leader> <Esc>:w!<CR>a
-
+inoremap <Space><Space> <Esc>:w!<CR>a
 
 
 " ---------------------------------------------------------------------------
