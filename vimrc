@@ -5,10 +5,11 @@
 " - @rtomayko (tomayko.com)
 " - @jkreeftmeijer (jeffkreeftmeijer.com)
 " - Nathan LeClaire (nathanleclaire.com)
-"   The Vim Wikia (vim.wikia.com)
-" - [More Victims Coming Soon]
+" -  The Vim Wikia (vim.wikia.com)
+" - Thoughtbot (https://thoughtbot.com/)
+"   
 "
-filetype plugin on
+filetype off
 "
 " ---------------------------------------------------------------------------
 " General
@@ -24,14 +25,14 @@ set viminfo='1000,f1,:100,@100,/20
 set modeline                            " make sure modeline support is enabled
 set autoread                            " reload files (no local changes only)
 set tabpagemax=50                       " open 50 tabs max
-set autochdir                           " change working directory
 set omnifunc=syntaxcomplete#Complete
+set splitright splitbelow               " position new windows below and right
 
 " ---------------------------------------------------------------------------
 " Colors / Theme
 " ---------------------------------------------------------------------------
 syntax on
-colorscheme torte
+colorscheme ron
 
 " ---------------------------------------------------------------------------
 "  Highlight
@@ -91,7 +92,7 @@ set nohlsearch                          " don't highlight searches
 set visualbell                          " shut the fuck up
 set cursorline                          " underline current line
 set cursorcolumn                        " highlight current column
-match LongLine /\%81v.\+/                  " let us know when we pass 80 chars
+set colorcolumn=88                      " highlight the 88th column
 
 function! CursorToggle()
     if(&cursorline == 1)
@@ -104,6 +105,7 @@ function! CursorToggle()
 endfunction
 
 nnoremap <expr> ; CursorToggle()
+
 " ----------------------------------------------------------------------------
 " Text Formatting
 " ----------------------------------------------------------------------------
@@ -111,13 +113,21 @@ nnoremap <expr> ; CursorToggle()
 set autoindent                          " automatic indent new lines
 set smartindent                         " be smart about it
 set nowrap                              " do not wrap lines
-set softtabstop=4                       " yep, two (nope, four!)
-set shiftwidth=4
-set tabstop=4
+set softtabstop=2                       " yep, two (nope, four!)
+set shiftwidth=2
+set tabstop=2
 set expandtab                           " expand tabs to spaces
 set nosmarttab                          " fuck tabs
 set formatoptions+=n                    " support for numbered/bullet lists
 set virtualedit=block                   " allow virtual edit in visual block
+set fileformat=unix
+set encoding=utf-8
+
+au BufRead,BufNewFile *.md setlocal textwidth=80 "Wrap text if .md
+"
+" enable line numbers in NERDTree
+let NERDTreeShowLineNumbers=1
+autocmd FileType nerdtree setlocal relativenumber
 
 " ----------------------------------------------------------------------------
 " Key Mapping
@@ -136,10 +146,15 @@ nnoremap <S-Tab> gT
 nnoremap j jzz
 nnoremap k kzz
 
-nnoremap <Space>j <C-d>zz
-nnoremap <Space>k <C-u>zz
-nnoremap <Space>h ^
-nnoremap <Space>l $
+nnoremap jj <C-d>zz
+nnoremap kk <C-u>zz
+nnoremap hh ^
+nnoremap ll $
+
+nnoremap hw <C-w>h
+nnoremap lw <C-w>l
+nnoremap kw <C-w>k
+nnoremap jw <C-w>j
 
 nnoremap <C-H> <C-W><C-H>
 nnoremap <C-J> <C-W><C-J>
@@ -148,16 +163,63 @@ nnoremap <C-L> <C-W><C-L>
 
 nnoremap Q :q<CR>
 nnoremap W :w<CR>
-nnoremap <Space><Space> :w!<CR>
 
-inoremap <Space><Space> <Esc>:w!<CR>a
+nmap <Space><Space> :NERDTreeToggle<CR>
 
+command Term execute 'bo term'
+
+" ---------------------------------------------------------------------------
+" Python Development
+" ---------------------------------------------------------------------------
+" run python tests
+command PT execute ':w | bo term python3 -B -m unittest'
+command PR execute ':w | bo term python3 -B %'
+command Black silent execute ':w | !black ./'
 
 " ---------------------------------------------------------------------------
 " Plugins
 " ---------------------------------------------------------------------------
-" execute pathogen#infect()
+" TO INSTALL A PLUGIN PUT ITS GIT PROJECT BELOW AND RUN :PluginInstall
+" set the runtime path to include Vundle and initialize
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
 
+" let Vundle manage Vundle, required
+Plugin 'gmarik/Vundle.vim'
+"Plugin 'tmhedberg/SimpylFold'
+Plugin 'scrooloose/nerdtree'
+Plugin 'tpope/vim-fugitive'
+Plugin 'dbakker/vim-projectroot' 
+
+
+" All of your Plugins must be added before the following line
+call vundle#end()            " required
+filetype plugin indent on    " required
+" ----------------------------------------------------------------------------
+" NERDTree
+" ----------------------------------------------------------------------------
+
+" auto-start NERDTree
+autocmd VimEnter * NERDTree | wincmd p
+
+" Exit Vim if NERDTree is the only window left.
+autocmd BufEnter * if tabpagenr('$') == 1 && winnr('$') == 1 && exists('b:NERDTree') && b:NERDTree.isTabTree() |
+    \ quit | endif
+"
+" ----------------------------------------------------------------------------
+" ProjectRoot
+" ----------------------------------------------------------------------------
+function! <SID>AutoProjectRootCD()
+  try
+    if &ft != 'help'
+      ProjectRootCD
+    endif
+  catch
+    " Silently ignore invalid buffers
+  endtry
+endfunction
+
+autocmd BufEnter * call <SID>AutoProjectRootCD()
 " ----------------------------------------------------------------------------
 " PHPUnit testing
 " ----------------------------------------------------------------------------
