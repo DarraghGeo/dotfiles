@@ -156,6 +156,11 @@ nnoremap <Space>l <C-w>l
 nnoremap <Space>k <C-w>k
 nnoremap <Space>j <C-w>j
 
+nnoremap <Space>w :resize -10<CR>
+nnoremap <Space>s :resize +10<CR>
+nnoremap <Space>a :vertical resize +10<CR>
+nnoremap <Space>d :vertical resize -10<CR>
+
 nnoremap <C-H> <C-W><C-H>
 nnoremap <C-J> <C-W><C-J>
 nnoremap <C-K> <C-W><C-K>
@@ -169,6 +174,7 @@ nmap <Space><Space> :w<CR>
 imap <Space><Space> <Esc>:w<CR>
 
 command Term execute 'bo term'
+nnoremap T :terminal<cr>
 
 " ---------------------------------------------------------------------------
 " Python Development
@@ -240,5 +246,4 @@ function! RunPHPUnitTest(filter)
     cd -
 endfunction
 
-nnoremap T :call RunPHPUnitTest(0)<cr>
 nnoremap <leader>T :call RunPHPUnitTest(1)<cr>
