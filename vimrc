@@ -151,10 +151,10 @@ nnoremap kk <C-u>zz
 nnoremap hh ^
 nnoremap ll $
 
-nnoremap hw <C-w>h
-nnoremap lw <C-w>l
-nnoremap kw <C-w>k
-nnoremap jw <C-w>j
+nnoremap <Space>h <C-w>h
+nnoremap <Space>l <C-w>l
+nnoremap <Space>k <C-w>k
+nnoremap <Space>j <C-w>j
 
 nnoremap <C-H> <C-W><C-H>
 nnoremap <C-J> <C-W><C-J>
@@ -164,7 +164,9 @@ nnoremap <C-L> <C-W><C-L>
 nnoremap Q :q<CR>
 nnoremap W :w<CR>
 
-nmap <Space><Space> :NERDTreeToggle<CR>
+nmap <Space>t :NERDTreeToggle<CR>
+nmap <Space><Space> :w<CR>
+imap <Space><Space> <Esc>:w<CR>
 
 command Term execute 'bo term'
 
