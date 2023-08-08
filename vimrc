@@ -27,12 +27,14 @@ set autoread                            " reload files (no local changes only)
 set tabpagemax=50                       " open 50 tabs max
 set omnifunc=syntaxcomplete#Complete
 set splitright splitbelow               " position new windows below and right
+set timeoutlen=250                      " wait 250ms to receive second input
+
 
 " ---------------------------------------------------------------------------
 " Colors / Theme
 " ---------------------------------------------------------------------------
 syntax on
-colorscheme ron
+"colorscheme nightfox
 
 " ---------------------------------------------------------------------------
 "  Highlight
