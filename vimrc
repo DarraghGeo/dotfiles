@@ -186,25 +186,15 @@ command PT execute ':w | bo term python3 -B -m unittest'
 command PR execute ':w | bo term python3 -B %'
 command Black silent execute ':w | !black ./'
 
-" ---------------------------------------------------------------------------
-" Plugins
-" ---------------------------------------------------------------------------
-" TO INSTALL A PLUGIN PUT ITS GIT PROJECT BELOW AND RUN :PluginInstall
-" set the runtime path to include Vundle and initialize
-set rtp+=~/.vim/bundle/Vundle.vim
-call vundle#begin()
+" ----------------------------------------------------------------------------
+" Airline & ALE
+" ----------------------------------------------------------------------------
 
-" let Vundle manage Vundle, required
-Plugin 'gmarik/Vundle.vim'
-"Plugin 'tmhedberg/SimpylFold'
-Plugin 'scrooloose/nerdtree'
-Plugin 'tpope/vim-fugitive'
-Plugin 'dbakker/vim-projectroot' 
+let g:ale_fixers = {
+\   'javascript': ['eslint'],
+\}
+let g:airline#extensions#ale#enabled = 1              " Enable syntax errors in airline
 
-
-" All of your Plugins must be added before the following line
-call vundle#end()            " required
-filetype plugin indent on    " required
 " ----------------------------------------------------------------------------
 " NERDTree
 " ----------------------------------------------------------------------------
@@ -230,22 +220,7 @@ function! <SID>AutoProjectRootCD()
 endfunction
 
 autocmd BufEnter * call <SID>AutoProjectRootCD()
-" ----------------------------------------------------------------------------
-" PHPUnit testing
-" ----------------------------------------------------------------------------
-function! RunPHPUnitTest(filter)
-    cd %:p:h
-    if a:filter
-        normal! T yw
-        let result = system("phpunit --filter " . @" . " " . bufname("%"))
-    else
-        let result = system("phpunit " . bufname("%"))
-    endif
-    split __PHPUnit_Result__
-    normal! ggdG
-    setlocal buftype=nofile
-    call append(0, split(result, '\v\n'))
-    cd -
-endfunction
 
-nnoremap <leader>T :call RunPHPUnitTest(1)<cr>
+packloadall
+silent! helptags ALL
+
