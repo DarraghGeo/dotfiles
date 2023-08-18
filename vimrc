@@ -178,6 +178,15 @@ imap <Space><Space> <Esc>:w<CR>
 command Term execute 'bo term'
 nnoremap T :terminal<cr>
 
+nnoremap <Space>y :%w !pbcopy<CR><CR>
+
+
+" ---------------------------------------------------------------------------
+" Emmet
+" ---------------------------------------------------------------------------
+let g:user_emmet_install_global = 0
+nmap <Space><Space><Space> <C-y>,
+imap <Space><Space><Space> <Esc><C-y>,
 " ---------------------------------------------------------------------------
 " Python Development
 " ---------------------------------------------------------------------------
