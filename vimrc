@@ -177,7 +177,7 @@ imap <Space><Space> <Esc>:w<CR>
 
 " fold and open lines
 vnoremap <Space>o zo
-noremap <Space>f zf
+noremap <Space>r zf
 
 " get a full width or height terminal
 nnoremap T :bo term<CR>
@@ -192,11 +192,17 @@ autocmd TerminalWinOpen * tnoremap <buffer> <Space><Space> <C-w>N
 au TerminalWinOpen * setlocal syntax=off
 
 " ---------------------------------------------------------------------------
+" fzf
+" ---------------------------------------------------------------------------
+nnoremap <Space>f :FZF<CR>
+nnoremap <Space>ff :RG<CR>
+" ---------------------------------------------------------------------------
 " Emmet
 " ---------------------------------------------------------------------------
 let g:user_emmet_install_global = 0
 nmap <Space><Space><Space> <C-y>,
 imap <Space><Space><Space> <Esc><C-y>,
+
 " ---------------------------------------------------------------------------
 " Python Development
 " ---------------------------------------------------------------------------
@@ -243,3 +249,55 @@ autocmd BufEnter * call <SID>AutoProjectRootCD()
 packloadall
 silent! helptags ALL
 
+
+" ----------------------------------------------------------------------------
+" ChatGPT
+" ----------------------------------------------------------------------------
+nnoremap <Space>g :call ChatGPT()<CR>
+vnoremap <Space>g :call ChatGPT_visual()<CR>
+
+function! ChatGPT() range
+  let selectionCommand = printf('cat %s', shellescape(expand('%')))
+
+  if mode() ==# 'v' || mode() ==# 'V'
+    let selected_text = join(getline(line("'<"), line("'>")), "\n")
+    let selectionCommand = printf('echo %s', shellescape(selected_text))
+  endif
+
+  let prompt = shellescape(input("What's your question? "))
+
+  if strlen(prompt) < 3
+    echo "Error: Prompt required."
+    return
+  endif
+
+  let setup = ''
+
+  let gitSearchCommand = printf('git -C %s rev-parse --show-toplevel', expand('%:h'))
+  let projectPath = system(gitSearchCommand)
+
+  if strlen(projectPath) > 0
+    let projectName = fnamemodify(projectPath, ':t')
+    let formattedProjectName = substitute(projectName, '[^a-zA-Z0-9_]', '_', 'g')
+    let formattedProjectName = substitute(formattedProjectName,'\n','','g')
+
+    let setup = printf('export OPENAI_THREAD="%s";', formattedProjectName)
+  endif
+
+  let command = printf('(%s) | chatgpt %s;', selectionCommand, prompt)
+
+  let response = "Hello world"
+
+  let response_buffer = bufadd('ChatGPT Response')
+  call setbufvar(response_buffer, '&modifiable', 0)
+
+  call setbufline(response_buffer, 1, response)
+
+  "execute 'split ChatGPT Response'
+
+endfunction
+
+function! ChatGPT_visual() range
+  normal gv
+  call ChatGPT()
+endfunction
