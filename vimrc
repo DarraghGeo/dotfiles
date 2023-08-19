@@ -5,7 +5,7 @@
 " - Nathan LeClaire (nathanleclaire.com)
 " -  The Vim Wikia (vim.wikia.com)
 " - Thoughtbot (https://thoughtbot.com/)
-"   
+"
 "
 filetype off
 "
@@ -255,6 +255,8 @@ nnoremap <Space>g :call ChatGPT()<CR>
 vnoremap <Space>g :call ChatGPT_visual()<CR>
 
 function! ChatGPT() range
+
+  " decide if we're piping the whole file or just a snippet
   let selectionCommand = printf('cat %s', shellescape(expand('%')))
 
   if mode() ==# 'v' || mode() ==# 'V'
@@ -262,15 +264,11 @@ function! ChatGPT() range
     let selectionCommand = printf('echo %s', shellescape(selected_text))
   endif
 
+  " get the query, question, etc.
   let prompt = shellescape(input("What's your question? "))
 
-  if strlen(prompt) < 3
-    echo "Error: Prompt required."
-    return
-  endif
-
+  " if file is part of a git project, use an exclusive thread
   let setup = ''
-
   let gitSearchCommand = printf('git -C %s rev-parse --show-toplevel', expand('%:h'))
   let projectPath = system(gitSearchCommand)
 
@@ -278,25 +276,75 @@ function! ChatGPT() range
     let projectName = fnamemodify(projectPath, ':t')
     let formattedProjectName = substitute(projectName, '[^a-zA-Z0-9_]', '_', 'g')
     let formattedProjectName = substitute(formattedProjectName,'\n','','g')
-
     let setup = printf('export OPENAI_THREAD="%s";', formattedProjectName)
   endif
 
+  " run the query and parse the response
   let command = printf('(%s) | chatgpt %s;', selectionCommand, prompt)
-
   let response = system(setup . command)
+  let response = split(response, "\n")
 
-  let buffer_name = 'ChatGPT'
-  let buffer = bufadd(buffer_name)
-  call setbufvar(buffer, '&buftype', 'nofile')
-  call setbufvar(buffer, '&modifiable', 0)
-  call bufload(buffer_name)
-  call setbufline(buffer_name, 1, split(response, "\n"))
-  execute 'sp buffer ' . buffer_name
-
+  call LoadChatGPTBuffer(response)
 endfunction
 
+" ensure we're in visual mode if context was selected
 function! ChatGPT_visual() range
   normal gv
   call ChatGPT()
+endfunction
+
+function! LoadChatGPTBuffer(response)
+  let buffer_name = 'ChatGPT Response'
+  let buffer = bufnr(buffer_name)
+
+  if buffer == -1
+    let buffer = bufadd(buffer_name)
+  else
+    execute 'sp ' . buffer_name
+  endif
+
+  call setbufvar(buffer_name, '&modifiable', 1)
+  call setbufline(buffer_name, '$', response)
+  normal! G
+endfunction
+
+" parse the history into lines
+function! ParseChatGPTHistory() abort
+  let path = '$HOME/.chatgpt-cli/history/_dotfiles_.json'
+  let contents = readfile(glob(path))
+  let result = []
+
+  for line in contents
+    let parsed = json_decode(line)
+
+    if empty(parsed) || type(parsed) != 3
+      continue
+    endif
+
+    for item in parsed
+
+      if type(item) != 4 || !has_key(item, 'role') || !has_key(item, 'content')
+        continue
+      endif
+
+      let role = item['role']
+      let message = item['content']
+
+      let parsed_item_str = '\n[' . role . ']\n' . string(message) . "\n"
+      let parsed_item_list = split(parsed_item_str, "\n")
+
+      call extend(result, parsed_item_list)
+
+    endfor
+  endfor
+
+  return result
+endfunction
+
+" define ChatGPT buffer styling
+function! StyleChatGPT()
+  setlocal textwidth=84
+  setlocal linebreak
+  setlocal wrap
+  normal! gggqG
 endfunction
