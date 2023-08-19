@@ -293,6 +293,7 @@ function! ChatGPT() range
 
   call setbufline(response_buffer, 1, response)
 
+  echo response
   "execute 'split ChatGPT Response'
 
 endfunction
