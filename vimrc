@@ -67,16 +67,15 @@ set backspace=2                         " allow backspacing over everything in i
 set report=0                            " tell us about changes
 set nostartofline                       " don't jump to the start of line when scrolling
 
-function! NumberToggle()
-    if(&relativenumber == 1)
-        set norelativenumber
+function! NumberToggle()                " switch between relative and absolute numbers
+    if(&relativenumber == 1)            " relative in normal mode for jumping, absolute
+        set norelativenumber            " in insert mode for debugging.
         set number
     else
         set nonumber
         set relativenumber
     endif
 endfunction
-
 
 autocmd InsertEnter * call NumberToggle()
 autocmd InsertLeave * call NumberToggle()
@@ -125,8 +124,9 @@ set virtualedit=block                   " allow virtual edit in visual block
 set fileformat=unix
 set encoding=utf-8
 
-au BufRead,BufNewFile *.md setlocal textwidth=80 "Wrap text if .md
-"
+au BufRead,BufNewFile *.md,*.json setlocal textwidth=80 "Wrap text if md/json
+autocmd BufEnter term://* setlocal syntax=no            "disable highlightin in terminal
+
 " enable line numbers in NERDTree
 let NERDTreeShowLineNumbers=1
 autocmd FileType nerdtree setlocal relativenumber
@@ -175,11 +175,21 @@ nmap <Space>t :NERDTreeToggle<CR>
 nmap <Space><Space> :w<CR>
 imap <Space><Space> <Esc>:w<CR>
 
-command Term execute 'bo term'
-nnoremap T :terminal<cr>
+" fold and open lines
+vnoremap <Space>o zo
+noremap <Space>f zf
 
+" get a full width or height terminal
+nnoremap T :bo term<CR>
+nnoremap TT :vert term<CR>
+
+" yanking selected lines, or all document, to OS clipboard
 nnoremap <Space>y :%w !pbcopy<CR><CR>
+vnoremap <Space>y "+y
 
+
+autocmd TerminalWinOpen * tnoremap <buffer> <Space><Space> <C-w>N
+au TerminalWinOpen * setlocal syntax=off
 
 " ---------------------------------------------------------------------------
 " Emmet
