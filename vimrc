@@ -286,14 +286,9 @@ function! ChatGPT() range
 
   let command = printf('(%s) | chatgpt %s;', selectionCommand, prompt)
 
-  let response = "Hello world"
+  let response = system(setup . command)
 
-  let response_buffer = bufadd('ChatGPT Response')
-  call setbufvar(response_buffer, '&modifiable', 0)
-
-  call setbufline(response_buffer, 1, response)
-
-  echo response
+  echo printf('\n\n%s', response)
   "execute 'split ChatGPT Response'
 
 endfunction
