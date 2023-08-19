@@ -1,5 +1,3 @@
-"
-"
 " Much/most of this has been blatently stolen from
 "
 " - @rtomayko (tomayko.com)
@@ -288,8 +286,13 @@ function! ChatGPT() range
 
   let response = system(setup . command)
 
-  echo printf('\n\n%s', response)
-  "execute 'split ChatGPT Response'
+  let buffer_name = 'ChatGPT'
+  let buffer = bufadd(buffer_name)
+  call setbufvar(buffer, '&buftype', 'nofile')
+  call setbufvar(buffer, '&modifiable', 0)
+  call bufload(buffer_name)
+  call setbufline(buffer_name, 1, split(response, "\n"))
+  execute 'sp buffer ' . buffer_name
 
 endfunction
 
