@@ -254,38 +254,6 @@ silent! helptags ALL
 nnoremap <Space>g :call ChatGPT()<CR>
 vnoremap <Space>g :call ChatGPT_visual()<CR>
 
-function! ChatGPT() range
-
-  " decide if we're piping the whole file or just a snippet
-  let selectionCommand = printf('cat %s', shellescape(expand('%')))
-
-  if mode() ==# 'v' || mode() ==# 'V'
-    let selected_text = join(getline(line("'<"), line("'>")), "\n")
-    let selectionCommand = printf('echo %s', shellescape(selected_text))
-  endif
-
-  " get the query, question, etc.
-  let prompt = shellescape(input("What's your question? "))
-
-  " if file is part of a git project, use an exclusive thread
-  let setup = ''
-  let gitSearchCommand = printf('git -C %s rev-parse --show-toplevel', expand('%:h'))
-  let projectPath = system(gitSearchCommand)
-
-  if strlen(projectPath) > 0
-    let projectName = fnamemodify(projectPath, ':t')
-    let formattedProjectName = substitute(projectName, '[^a-zA-Z0-9_]', '_', 'g')
-    let formattedProjectName = substitute(formattedProjectName,'\n','','g')
-    let setup = printf('export OPENAI_THREAD="%s";', formattedProjectName)
-  endif
-
-  " run the query and parse the response
-  let command = printf('(%s) | chatgpt %s;', selectionCommand, prompt)
-  let response = system(setup . command)
-  let response = split(response, "\n")
-
-  call LoadChatGPTBuffer(response)
-endfunction
 
 " ensure we're in visual mode if context was selected
 function! ChatGPT_visual() range
@@ -293,19 +261,124 @@ function! ChatGPT_visual() range
   call ChatGPT()
 endfunction
 
-function! LoadChatGPTBuffer(response)
-  let buffer_name = 'ChatGPT Response'
+function! ChatGPT() range
+
+  let ChatGPTResponseIndex = stridx(bufname('%'), "ChatGPT Response :: ")
+
+  " decide what, if anything, we're going to pipe and default nothing
+  let selectionCommand = ""
+  let userAction = "[Piped Nothing]"
+
+  " but if we're in visual mode then pipe the selection
+  if mode() ==# 'v' || mode() ==# 'V'
+    let selected_text = join(getline(line("'<"), line("'>")), "\n")
+    let selectionCommand = printf('echo %s', shellescape(selected_text))
+    let userAction = "[Piped Snippet]"
+  " but if not, and as long as we're not in a chatgpt buffer, pipe the whole file
+  elseif ChatGPTResponseIndex == -1
+    let selectionCommand = printf('cat %s', shellescape(expand('%')))
+    let userAction = printf("[Piped %s]",expand('%:t'))
+  endif
+
+  " get the query, question, etc.
+  let prompt = shellescape(input("ChatGPT>> "))
+
+  let setup = ''
+  " if buffer isn't a ChatGPT buffer identify a unique project name
+  if ChatGPTResponseIndex == -1
+    let gitSearchCommand = printf('git -C %s rev-parse --show-toplevel', expand('%:h'))
+    let projectPath = system(gitSearchCommand)
+
+    " if file is part of a git project, use a thread for the entire repo
+    if strlen(projectPath) > 0
+      let projectName = fnamemodify(projectPath, ':t')
+    " otherwise just use the buffer name for the individual file
+    else
+      let projectName = bufname('%')
+    endif
+  " but if it is a ChatGPT buffer just extract the project name
+  else
+    let projectName = split(bufname('%'),'ChatGPT Response :: ')[0]
+  endif
+
+  " make the name file friendly for the history file
+  let projectName = substitute(projectName,'\n','','g')
+  let formattedProjectName = substitute(projectName, '[^a-zA-Z0-9_]', '_', 'g')
+  let setup = printf('export OPENAI_THREAD="%s";', formattedProjectName)
+
+  " run the query and parse the response
+  if strlen(selectionCommand) > 0
+    let command = printf('(%s) | chatgpt %s;', selectionCommand, prompt)
+  else
+    let command = printf('chatgpt %s;', prompt)
+  endif
+
+  let response = system(setup . command)
+  let response = split(response, '\n')
+
+  " combine with user actions
+  let userInput = FormatUserInput(prompt, userAction)
+  let interaction = extend(userInput, response)
+
+  " output to buffer
+  call LoadChatGPTBuffer(interaction, projectName)
+endfunction
+
+" launch a buffer to display the output
+function! LoadChatGPTBuffer(response, projectName) abort
+  let buffer_name = 'ChatGPT Response :: ' . a:projectName
   let buffer = bufnr(buffer_name)
 
   if buffer == -1
     let buffer = bufadd(buffer_name)
-  else
-    execute 'sp ' . buffer_name
+    call bufload(buffer)
+    call setbufvar(buffer, '&buftype', 'nofile')
   endif
 
-  call setbufvar(buffer_name, '&modifiable', 1)
-  call setbufline(buffer_name, '$', response)
-  normal! G
+  if bufwinnr(buffer_name) == -1
+    execute 'sp ' . buffer_name
+  else
+    execute bufwinnr(buffer_name) . ' wincmd w'
+  endif
+
+  echom "Buffer Name Check: " . buffer_name
+  echom "Buffer ID Check: " . bufnr(buffer_name)
+  "execute 'buffer ' .buffer_name
+  call setbufline(buffer, '$', a:response)
+  call StyleChatGPT(buffer)
+endfunction
+
+" define ChatGPT buffer styling
+function! StyleChatGPT(buffer) abort
+  if a:buffer != bufnr('%')
+    execute 'buffer ' . a:buffer
+  endif
+
+  setlocal textwidth=84
+  setlocal linebreak
+  setlocal wrap
+
+  syntax clear
+  syntax match ChatGPTCodeSnippet /`.*`/
+  highlight link ChatGPTCodeSnippet Question
+
+  syntax match ChatGPTUserAction /\[.\{-}\]/
+  highlight link ChatGPTUserAction EndOfBuffer
+
+  syntax match ChatGPTUser /^-.*-$/ contains=@NoSpell 
+  highlight link ChatGPTUser Constant
+
+  syntax match ChatGPTCodeBlock /```.*```/
+  highlight link ChatGPTCodeBlock Question
+
+  normal! gggqG
+endfunction
+
+function! FormatUserInput(prompt, piped) abort
+  let separator = repeat('-',84)
+  let space = ''
+
+  return ['','',separator,'',a:piped,'',a:prompt,'',separator,'','']
 endfunction
 
 " parse the history into lines
@@ -341,10 +414,3 @@ function! ParseChatGPTHistory() abort
   return result
 endfunction
 
-" define ChatGPT buffer styling
-function! StyleChatGPT()
-  setlocal textwidth=84
-  setlocal linebreak
-  setlocal wrap
-  normal! gggqG
-endfunction
