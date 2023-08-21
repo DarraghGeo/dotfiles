@@ -381,11 +381,11 @@ function! StyleChatGPT(buffer) abort
   syntax match ChatGPTCodeBlock /```\_.\{-}```/ 
   highlight link ChatGPTCodeBlock Question
 
+  syntax match ChatGPTUser /^-\{-}-$/
+  highlight link ChatGPTUser Constant
+
   syntax match ChatGPTUserAction /\[\_.\{-}\]/ 
   highlight link ChatGPTUserAction EndOfBuffer
-
-  syntax match ChatGPTUser /^-.*-$/ contains=@NoSpell 
-  highlight link ChatGPTUser Constant
 
   execute '%global/\%>84v/normal! gqq'
 
@@ -431,44 +431,4 @@ function! ParseChatGPTHistory() abort
   endfor
 
   return result
-endfunction
-
-
-" Define a function that breaks long lines while leaving shorter lines unchanged
-function! BreakLongLines() abort
-    " Get the current buffer
-    let buffer = bufnr('%')
-
-    " Move to the beginning of the buffer
-    normal! gg
-
-    " Loop through each line in the buffer
-    while line('.') <= line('$')
-        " Get the length of the current line
-        let line_length = len(getline('.'))
-
-        " Break line if it is longer than 80 characters
-        if line_length > 80
-            " Break the line
-            normal! gq$
-
-            " Update the length of the current line
-            let line_length = len(getline('.'))
-        endif
-
-        " Move to the next line
-        normal! j
-    endwhile
-
-    " Return to the original position
-    normal! gg
-
-    " Update the display
-    redraw
-endfunction
-
-" make sure chatgpt-cli is installed
-function! IsChatGPTCliInstalled()
-    let command_output = system('command -v chatgpt')
-    return empty(command_output) ? 0 : 1
 endfunction
