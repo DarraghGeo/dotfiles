@@ -197,7 +197,6 @@ nnoremap <Space>ff :RG<CR>
 " ---------------------------------------------------------------------------
 " Emmet
 " ---------------------------------------------------------------------------
-let g:user_emmet_install_global = 0
 nmap <Space><Space><Space> <C-y>,
 imap <Space><Space><Space> <Esc><C-y>,
 
@@ -431,4 +430,9 @@ function! ParseChatGPTHistory() abort
   endfor
 
   return result
+endfunction
+
+function! IsChatGPTCliInstalled()
+    let command_output = system('command -v chatgpt')
+    return !empty(command_output)
 endfunction
