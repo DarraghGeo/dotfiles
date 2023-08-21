@@ -263,9 +263,15 @@ endfunction
 
 function! ChatGPT() range
 
+  " make sure chatgpt-cli is installed
+  if !IsChatGPTCliInstalled()
+    throw 'Requires chatgpt-cli to be installed. https://github.com/kardolus/chatgpt-cli'
+    return
+  endif
+
   let ChatGPTResponseIndex = stridx(bufname('%'), "ChatGPT Response :: ")
 
-  " decide what, if anything, we're going to pipe and default nothing
+  " decide what, if anything, we're going to pipe and default to nothing
   let selectionCommand = ""
   let userAction = "[Piped Nothing]"
 
@@ -329,55 +335,68 @@ function! LoadChatGPTBuffer(response, projectName) abort
   let buffer_name = 'ChatGPT Response :: ' . a:projectName
   let buffer = bufnr(buffer_name)
 
+  " if there's no pre-existing buffer create one
   if buffer == -1
     let buffer = bufadd(buffer_name)
     call bufload(buffer)
     call setbufvar(buffer, '&buftype', 'nofile')
   endif
 
+  " if there's no window then create one
   if bufwinnr(buffer_name) == -1
     execute 'sp ' . buffer_name
+  " but if there is then bring it into focus
   else
     execute bufwinnr(buffer_name) . ' wincmd w'
   endif
 
-  echom "Buffer Name Check: " . buffer_name
-  echom "Buffer ID Check: " . bufnr(buffer_name)
-  "execute 'buffer ' .buffer_name
+  " add to end of buffer
+  call setbufvar(buffer, '&modifiable', 1)
   call setbufline(buffer, '$', a:response)
+
+  " make it look sexy
   call StyleChatGPT(buffer)
+  call setbufvar(buffer, '&modifiable', 0)
 endfunction
 
 " define ChatGPT buffer styling
 function! StyleChatGPT(buffer) abort
+  " lets not accidently restyle a working buffer style
   if a:buffer != bufnr('%')
     execute 'buffer ' . a:buffer
   endif
 
+  " keep colors inbetween the lines
   setlocal textwidth=84
   setlocal linebreak
   setlocal wrap
 
+  " paint the screen
   syntax clear
-  syntax match ChatGPTCodeSnippet /`.*`/
+  syntax sync minlines=10000
+
+  syntax match ChatGPTCodeSnippet /`[^`]\{-}`/ 
   highlight link ChatGPTCodeSnippet Question
 
-  syntax match ChatGPTUserAction /\[.\{-}\]/
+  syntax match ChatGPTCodeBlock /```\_.\{-}```/ 
+  highlight link ChatGPTCodeBlock Question
+
+  syntax match ChatGPTUserAction /\[\_.\{-}\]/ 
   highlight link ChatGPTUserAction EndOfBuffer
 
   syntax match ChatGPTUser /^-.*-$/ contains=@NoSpell 
   highlight link ChatGPTUser Constant
 
-  syntax match ChatGPTCodeBlock /```.*```/
-  highlight link ChatGPTCodeBlock Question
+  execute '%global/\%>84v/normal! gqq'
 
-  normal! gggqG
 endfunction
 
+" keep partial (promopt and context created) awareness in the buffer
 function! FormatUserInput(prompt, piped) abort
   let separator = repeat('-',84)
   let space = ''
 
+  " make it look good
   return ['','',separator,'',a:piped,'',a:prompt,'',separator,'','']
 endfunction
 
@@ -414,3 +433,42 @@ function! ParseChatGPTHistory() abort
   return result
 endfunction
 
+
+" Define a function that breaks long lines while leaving shorter lines unchanged
+function! BreakLongLines() abort
+    " Get the current buffer
+    let buffer = bufnr('%')
+
+    " Move to the beginning of the buffer
+    normal! gg
+
+    " Loop through each line in the buffer
+    while line('.') <= line('$')
+        " Get the length of the current line
+        let line_length = len(getline('.'))
+
+        " Break line if it is longer than 80 characters
+        if line_length > 80
+            " Break the line
+            normal! gq$
+
+            " Update the length of the current line
+            let line_length = len(getline('.'))
+        endif
+
+        " Move to the next line
+        normal! j
+    endwhile
+
+    " Return to the original position
+    normal! gg
+
+    " Update the display
+    redraw
+endfunction
+
+" make sure chatgpt-cli is installed
+function! IsChatGPTCliInstalled()
+    let command_output = system('command -v chatgpt')
+    return empty(command_output) ? 0 : 1
+endfunction
